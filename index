@@ -1,49 +1,59 @@
-s<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>My Web Map with Layer Control</title>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Map with Leaflet</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <style>
-        #map { height: 600px; }
+        #map {
+            height: 600px; /* Adjust height as needed */
+        }
     </style>
 </head>
 <body>
+    <h1>Carto CMCI</h1>
     <div id="map"></div>
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([latitude, longitude], zoomLevel);
+        // Initialize the map
+        var map = L.map('map').setView([latitude, longitude], zoomLevel); // Replace with your desired coordinates and zoom level
+        
+        // Add OpenStreetMap basemap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
         }).addTo(map);
 
-        // Layer groups
-        var layer1, layer2;
+        // Create layer groups
+        var layerGroups = {
+            "ARRONDISSEMENTS": null,
+            "CM": null,
+            "RA": null
+        };
 
         // Function to load GeoJSON layers
-        function loadGeoJSON(url) {
-            return fetch(url)
+        function loadGeoJSON(url, layerName) {
+            fetch(url)
                 .then(response => response.json())
-                .then(data => L.geoJSON(data));
+                .then(data => {
+                    layerGroups[layerName] = L.geoJSON(data).addTo(map);
+                });
         }
 
-        // Load layers
-        Promise.all([
-            loadGeoJSON('Arrondissements.geojson').then(layer => { layer1 = layer; }),
-            loadGeoJSON('CM.geojson').then(layer => { layer2 = layer; })
-            loadGeoJSON('RA.geojson').then(layer => { layer3 = layer; })
-        ]).then(() => {
-            // Add layers to map
-            var overlays = {
-                "Layer 1": layer1,
-                "Layer 2": layer2
-            };
+        // Load your GeoJSON files
+        loadGeoJSON('ARRONDISSEMENTS.geojson', 'ARRONDISSEMENTS');
+        loadGeoJSON('CM.geojson', 'CM');
+        loadGeoJSON('RA.geojson', 'RA');
 
-            // Add the layers to the map and the layer control
-            L.control.layers(null, overlays).addTo(map);
-            layer1.addTo(map); // Optionally add a layer to the map by default
-        });
+        // Add layer control
+        var overlays = {
+            "ARRONDISSEMENTS": layerGroups["ARRONDISSEMENTS"],
+            "CM": layerGroups["CM"],
+            "RA": layerGroups["RA"]
+        };
+
+        L.control.layers(null, overlays).addTo(map);
     </script>
 </body>
 </html>
