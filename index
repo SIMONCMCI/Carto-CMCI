@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+s<!DOCTYPE html>
 <html>
 <head>
     <title>My Web Map with Layer Control</title>
@@ -30,8 +30,9 @@
 
         // Load layers
         Promise.all([
-            loadGeoJSON('path/to/layer1.geojson').then(layer => { layer1 = layer; }),
-            loadGeoJSON('path/to/layer2.geojson').then(layer => { layer2 = layer; })
+            loadGeoJSON('Arrondissements.geojson').then(layer => { layer1 = layer; }),
+            loadGeoJSON('CM.geojson').then(layer => { layer2 = layer; })
+            loadGeoJSON('RA.geojson').then(layer => { layer3 = layer; })
         ]).then(() => {
             // Add layers to map
             var overlays = {
