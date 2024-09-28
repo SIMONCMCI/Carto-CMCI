@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Web Map with Layer Control</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        #map { height: 600px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([latitude, longitude], zoomLevel);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Layer groups
+        var layer1, layer2;
+
+        // Function to load GeoJSON layers
+        function loadGeoJSON(url) {
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => L.geoJSON(data));
+        }
+
+        // Load layers
+        Promise.all([
+            loadGeoJSON('path/to/layer1.geojson').then(layer => { layer1 = layer; }),
+            loadGeoJSON('path/to/layer2.geojson').then(layer => { layer2 = layer; })
+        ]).then(() => {
+            // Add layers to map
+            var overlays = {
+                "Layer 1": layer1,
+                "Layer 2": layer2
+            };
+
+            // Add the layers to the map and the layer control
+            L.control.layers(null, overlays).addTo(map);
+            layer1.addTo(map); // Optionally add a layer to the map by default
+        });
+    </script>
+</body>
+</html>
