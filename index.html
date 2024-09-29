@@ -58,14 +58,22 @@
         loadGeoJSON('CM.json', 'CM');
         loadGeoJSON('RA.json', 'RA');
 
-        // Add layer control
-        var overlays = {
-            "ARRONDISSEMENTS": layerGroups["ARRONDISSEMENTS"],
-            "CM": layerGroups["CM"],
-            "RA": layerGroups["RA"]
-        };
+         // Create a layer control
+        var overlays = {};
+        for (var layer in layerGroups) {
+            overlays[layer] = layerGroups[layer];
+        }
 
-        L.control.layers(null, overlays).addTo(map);
+        // Add layer control to map after loading layers
+        var layerControl = L.control.layers(null, overlays).addTo(map);
+
+        // Ensure layer control updates correctly when layers are added
+        map.on('overlayadd', function(e) {
+            console.log(e.name + ' layer added');
+        });
+        map.on('overlayremove', function(e) {
+            console.log(e.name + ' layer removed');
+        });
     </script>
 </body>
 </html>
