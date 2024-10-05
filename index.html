@@ -47,7 +47,7 @@
 
         var layers = {};
         var polygons = {};
-        var activePolygon = null; // Store the currently active polygon
+        var activeLayer = null; // Store the currently active layer
 
         function loadGeoJSON(url, layerName) {
             return fetch(url)
@@ -102,14 +102,14 @@
             var polygonIndex = document.getElementById('polygon-select').value;
 
             if (selectedLayer && polygonIndex !== null) {
-                // Remove the currently active polygon, if any
-                if (activePolygon) {
-                    map.removeLayer(activePolygon);
-                }
+                // Remove all polygons from the selected layer
+                polygons[selectedLayer].forEach(layer => {
+                    map.removeLayer(layer);
+                });
 
-                // Set and add the new polygon
-                activePolygon = polygons[selectedLayer][polygonIndex];
-                map.addLayer(activePolygon);
+                // Add the selected polygon
+                var selectedPolygon = polygons[selectedLayer][polygonIndex];
+                map.addLayer(selectedPolygon);
             }
         }
 
@@ -123,7 +123,6 @@
             document.getElementById('layer-select').addEventListener('change', () => {
                 updatePolygonDropdown();
                 document.getElementById('toggle-button').disabled = true; // Disable toggle button initially
-                activePolygon = null; // Reset active polygon
             });
             document.getElementById('polygon-select').addEventListener('change', () => {
                 document.getElementById('toggle-button').disabled = false; // Enable toggle button when polygon is selected
