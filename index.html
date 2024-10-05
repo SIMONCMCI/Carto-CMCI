@@ -15,7 +15,7 @@
         }
         #map {
             height: 1200px;
-            width: 100%; /* Make it responsive */
+            width: 100%;
             margin: 0 auto;
         }
         .filter-container {
@@ -26,33 +26,25 @@
 <body>
     <h1>My Web Map</h1>
     <div class="filter-container">
-        <label>
-            <input type="checkbox" id="filter-active" checked>
-            Show Active
-        </label>
-        <label>
-            <input type="checkbox" id="filter-inactive">
-            Show Inactive
-        </label>
+        <label for="layer-select">Select Layer:</label>
+        <select id="layer-select"></select>
+        <div id="polygon-checkboxes"></div>
     </div>
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // Initialize the map
         var map = L.map('map').setView([45.5207079311318, -73.588620481672], 12);
-
-        // Add OpenStreetMap basemap
+        
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(map);
 
         var layerGroups = {};
-        var overlays = {};
+        var polygons = {};
 
-        // Function to load GeoJSON layers with filtering
-        function loadGeoJSON(url, layerName, filterFunc) {
+        function loadGeoJSON(url, layerName) {
             return fetch(url)
                 .then(response => {
                     if (!response.ok) {
@@ -61,61 +53,38 @@
                     return response.json();
                 })
                 .then(data => {
-                    const filteredFeatures = data.features.filter(filterFunc);
-                    const filteredGeoJSON = {
-                        type: "FeatureCollection",
-                        features: filteredFeatures
-                    };
-                    var geojsonLayer = L.geoJSON(filteredGeoJSON);
+                    var geojsonLayer = L.geoJSON(data, {
+                        onEachFeature: function(feature, layer) {
+                            // Store the polygon layer in the polygons object
+                            if (!polygons[layerName]) {
+                                polygons[layerName] = [];
+                            }
+                            polygons[layerName].push(layer);
+                        }
+                    });
                     layerGroups[layerName] = geojsonLayer;
                     geojsonLayer.addTo(map);
+                    populateLayerDropdown(layerName);
                 });
         }
 
-        // Define your filter function
-        function filterByAttribute(feature) {
-            const isActive = document.getElementById('filter-active').checked;
-            const isInactive = document.getElementById('filter-inactive').checked;
-
-            // Adjust based on checkbox states
-            if (isActive && !isInactive) {
-                return feature.properties.status === 'active';
-            } else if (!isActive && isInactive) {
-                return feature.properties.status === 'inactive';
-            } else {
-                return true; // Show all if both are checked or none
-            }
+        function populateLayerDropdown(layerName) {
+            var select = document.getElementById('layer-select');
+            var option = document.createElement('option');
+            option.value = layerName;
+            option.text = layerName;
+            select.add(option);
         }
 
-        // Load your GeoJSON files initially
-        function loadLayers() {
-            // Clear existing layers
-            for (let layer in layerGroups) {
-                map.removeLayer(layerGroups[layer]);
-            }
-            layerGroups = {}; // Reset layer groups
+        function updatePolygonCheckboxes() {
+            var selectedLayer = document.getElementById('layer-select').value;
+            var checkboxContainer = document.getElementById('polygon-checkboxes');
+            checkboxContainer.innerHTML = ''; // Clear previous checkboxes
 
-            // Load layers with the current filters
-            Promise.all([
-                loadGeoJSON('Arrondissements.json', 'ARRONDISSEMENTS', filterByAttribute),
-                loadGeoJSON('CM.json', 'CM', filterByAttribute),
-                loadGeoJSON('RA.json', 'RA', filterByAttribute)
-            ]).then(() => {
-                for (var layer in layerGroups) {
-                    overlays[layer] = layerGroups[layer];
-                }
-                var layerControl = L.control.layers(null, overlays).addTo(map);
-            }).catch(error => {
-                console.error('Error loading one or more GeoJSON files:', error);
-            });
-        }
-
-        // Load layers initially
-        loadLayers();
-
-        // Add event listeners to checkboxes
-        document.getElementById('filter-active').addEventListener('change', loadLayers);
-        document.getElementById('filter-inactive').addEventListener('change', loadLayers);
-    </script>
-</body>
-</html>
+            if (selectedLayer && polygons[selectedLayer]) {
+                polygons[selectedLayer].forEach((polygon, index) => {
+                    var checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `${selectedLayer}-${index}`;
+                    checkbox.checked = true; // Check by default
+                    checkbox
