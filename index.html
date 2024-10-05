@@ -55,15 +55,12 @@
                 .then(data => {
                     var geojsonLayer = L.geoJSON(data, {
                         onEachFeature: function(feature, layer) {
-                            // Store the polygon layer in the polygons object
-                            if (!polygons[layerName]) {
-                                polygons[layerName] = [];
-                            }
-                            polygons[layerName].push(layer);
+                            layerGroups[layerName] = layerGroups[layerName] || [];
+                            layerGroups[layerName].push(layer);
+                            layer.addTo(map); // Add layer to the map initially
                         }
                     });
-                    layerGroups[layerName] = geojsonLayer;
-                    geojsonLayer.addTo(map);
+                    polygons[layerName] = geojsonLayer; // Store the geojsonLayer
                     populateLayerDropdown(layerName);
                 });
         }
@@ -81,10 +78,44 @@
             var checkboxContainer = document.getElementById('polygon-checkboxes');
             checkboxContainer.innerHTML = ''; // Clear previous checkboxes
 
-            if (selectedLayer && polygons[selectedLayer]) {
-                polygons[selectedLayer].forEach((polygon, index) => {
+            if (selectedLayer && layerGroups[selectedLayer]) {
+                layerGroups[selectedLayer].forEach((polygon, index) => {
                     var checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.id = `${selectedLayer}-${index}`;
                     checkbox.checked = true; // Check by default
-                    checkbox
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            map.addLayer(polygon);
+                        } else {
+                            map.removeLayer(polygon);
+                        }
+                    });
+
+                    var label = document.createElement('label');
+                    label.htmlFor = `${selectedLayer}-${index}`;
+                    label.textContent = `Polygon ${index + 1}`;
+
+                    checkboxContainer.appendChild(checkbox);
+                    checkboxContainer.appendChild(label);
+                    checkboxContainer.appendChild(document.createElement('br'));
+                });
+            }
+        }
+
+        // Load your GeoJSON files
+        Promise.all([
+            loadGeoJSON('Arrondissements.json', 'ARRONDISSEMENTS'),
+            loadGeoJSON('CM.json', 'CM'),
+            loadGeoJSON('RA.json', 'RA')
+        ]).then(() => {
+            // Add event listener to dropdown
+            document.getElementById('layer-select').addEventListener('change', updatePolygonCheckboxes);
+            // Initial call to populate checkboxes for the first layer
+            updatePolygonCheckboxes();
+        }).catch(error => {
+            console.error('Error loading one or more GeoJSON files:', error);
+        });
+    </script>
+</body>
+</html>
