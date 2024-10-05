@@ -47,7 +47,7 @@
 
         var layers = {};
         var polygons = {};
-        var activeLayer = null; // Store the currently active layer
+        var activePolygon = {}; // Store the currently active polygon for each layer
 
         function loadGeoJSON(url, layerName) {
             return fetch(url)
@@ -74,63 +74,4 @@
         }
 
         function populateLayerDropdown(layerName) {
-            var select = document.getElementById('layer-select');
-            var option = document.createElement('option');
-            option.value = layerName;
-            option.text = layerName;
-            select.add(option);
-        }
-
-        function updatePolygonDropdown() {
-            var selectedLayer = document.getElementById('layer-select').value;
-            var polygonSelect = document.getElementById('polygon-select');
-            polygonSelect.innerHTML = ''; // Clear previous options
-            polygonSelect.disabled = !selectedLayer; // Enable/disable based on layer selection
-
-            if (selectedLayer && polygons[selectedLayer]) {
-                polygons[selectedLayer].forEach((layer, index) => {
-                    var option = document.createElement('option');
-                    option.value = index;
-                    option.text = `Polygon ${index + 1}`; // Option text for each polygon
-                    polygonSelect.add(option);
-                });
-            }
-        }
-
-        function togglePolygon() {
-            var selectedLayer = document.getElementById('layer-select').value;
-            var polygonIndex = document.getElementById('polygon-select').value;
-
-            if (selectedLayer && polygonIndex !== null) {
-                // Remove all polygons from the selected layer
-                polygons[selectedLayer].forEach(layer => {
-                    map.removeLayer(layer);
-                });
-
-                // Add the selected polygon
-                var selectedPolygon = polygons[selectedLayer][polygonIndex];
-                map.addLayer(selectedPolygon);
-            }
-        }
-
-        // Load your GeoJSON files
-        Promise.all([
-            loadGeoJSON('Arrondissements.json', 'ARRONDISSEMENTS'),
-            loadGeoJSON('CM.json', 'CM'),
-            loadGeoJSON('RA.json', 'RA')
-        ]).then(() => {
-            // Add event listener to dropdowns
-            document.getElementById('layer-select').addEventListener('change', () => {
-                updatePolygonDropdown();
-                document.getElementById('toggle-button').disabled = true; // Disable toggle button initially
-            });
-            document.getElementById('polygon-select').addEventListener('change', () => {
-                document.getElementById('toggle-button').disabled = false; // Enable toggle button when polygon is selected
-            });
-            document.getElementById('toggle-button').addEventListener('click', togglePolygon);
-        }).catch(error => {
-            console.error('Error loading one or more GeoJSON files:', error);
-        });
-    </script>
-</body>
-</html>
+            var sele
